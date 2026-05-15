@@ -66,7 +66,7 @@ Principais tabelas:
 
 2. Abrir o projeto:
 
-   * Abrir o [http://](http://localhost:3000)
+   * Abrir o [http://localhost:3000](http://localhost:3000)
 
 ---
 
