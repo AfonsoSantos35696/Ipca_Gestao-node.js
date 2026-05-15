@@ -4,7 +4,7 @@
 
 Este projeto consiste num sistema de gestão académica desenvolvido com base numa base de dados relacional. O objetivo é gerir alunos, cursos, disciplinas, matrículas e avaliações de forma estruturada e eficiente.
 
-A base de dados foi criada em **MySQL/MariaDB** e permite suportar operações comuns em instituições de ensino.
+A base de dados foi criada em **Mongo DB** e permite suportar operações comuns em instituições de ensino.
 
 ---
 
@@ -61,21 +61,12 @@ Principais tabelas:
 
 ## 🚀 Como usar
 
-1. Importar o ficheiro SQL:
+1. Abrir o terminal e escrever:
+  * npm start
 
-   ```sql
-   ipca_gestao.sql
-   ```
+2. Abrir o projeto:
 
-2. Usar uma ferramenta como:
-
-   * phpMyAdmin
-   * MySQL Workbench
-
-3. Executar o script para criar a base de dados:
-
-   * Estrutura
-   * Dados de exemplo
+   * Abrir o [http://](http://localhost:3000)
 
 ---
 
@@ -91,15 +82,14 @@ Principais tabelas:
 
 ## 🛠️ Tecnologias
 
-* MySQL / MariaDB
-* phpMyAdmin
-* SQL
+* Atals Mongo DB
+* Node.js
 
 ---
 
 ## 📈 Melhorias Futuras
 
-* Interface web (PHP / Laravel / Node.js)
+* Interface web (Node.js / Express)
 * Sistema de autenticação completo
 * Dashboard com estatísticas
 * Exportação de relatórios
