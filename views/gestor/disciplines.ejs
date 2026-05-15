@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerir Disciplinas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>body{background:#f8f9fa;}</style>
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="container mt-5">
+    <h2 class="mb-4"><i class="bi bi-journal-bookmark-fill me-2"></i>Gestão de Disciplinas</h2>
+    <% if (message) { %><div class="alert alert-success"><%= message %></div><% } %>
+    <% const disciplineCourseNames = typeof courseNamesByDisciplineId !== 'undefined' ? courseNamesByDisciplineId : (() => {
+         const map = {};
+         if (typeof cursos !== 'undefined') {
+           cursos.forEach(course => {
+             (course.disciplinas || []).forEach(discipline => {
+               const disciplineId = discipline && discipline._id ? discipline._id.toString() : null;
+               if (disciplineId) {
+                 map[disciplineId] = course.nome_cursos;
+               }
+             });
+           });
+         }
+         return map;
+       })(); %>
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white"><h5 class="mb-0">Adicionar Nova Disciplina</h5></div>
+      <div class="card-body">
+        <form action="/gestor/disciplinas/add" method="post" class="row g-3">
+          <div class="col-md-5">
+            <input type="text" class="form-control" name="nome_disciplina" placeholder="Nome da disciplina" required>
+          </div>
+          <div class="col-md-5">
+            <select class="form-select" name="courseId" required>
+              <option value="" disabled selected>Selecionar Curso</option>
+              <% if (typeof cursos !== 'undefined' && cursos.length > 0) { %>
+                <% cursos.forEach(c => { %>
+                  <option value="<%= c._id %>"><%= c.nome_cursos %></option>
+                <% }) %>
+              <% } else { %>
+                <option disabled>Nenhum curso disponível</option>
+              <% } %>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-success w-100"><i class="bi bi-plus-circle"></i> Adicionar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header bg-secondary text-white"><h5 class="mb-0">Lista de Disciplinas</h5></div>
+      <div class="card-body table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>ID</th><th>Nome</th><th>Curso</th><th>Ações</th></tr></thead>
+          <tbody>
+            <% disciplinas.forEach(d => { %>
+              <tr>
+                <td><%= d._id %></td>
+                <td><%= d.nome_disciplina %></td>
+                <td><%= d.courseId ? d.courseId.nome_cursos : (disciplineCourseNames[d._id.toString()] || 'N/A') %></td>
+                <td class="text-nowrap">
+                  <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<%= d._id %>">Editar</button>
+                  <a href="/gestor/disciplinas/delete/<%= d._id %>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')">Eliminar</a>
+                </td>
+              </tr>
+              <div class="modal fade" id="editModal<%= d._id %>" tabindex="-1">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form action="/gestor/disciplinas/edit" method="post">
+                      <div class="modal-header"><h5 class="modal-title">Editar Disciplina</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                      <div class="modal-body">
+                        <input type="hidden" name="id_disciplina" value="<%= d._id %>">
+                        <div class="mb-3">
+                          <label class="form-label" for="nome_disciplina_<%= d._id %>">Nome da Disciplina</label>
+                          <input id="nome_disciplina_<%= d._id %>" class="form-control" name="nome_disciplina" value="<%= d.nome_disciplina %>" required>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="courseId_<%= d._id %>">Curso</label>
+                          <select id="courseId_<%= d._id %>" class="form-select" name="courseId" required>
+                            <% cursos.forEach(c => { %>
+                              <option value="<%= c._id %>" <%= d.courseId && d.courseId._id.toString() === c._id.toString() ? 'selected' : '' %>><%= c.nome_cursos %></option>
+                            <% }) %>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

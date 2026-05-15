@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Utilizadores</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .filtros { background: white; padding: 1rem; border-radius: 1rem; margin-bottom: 1rem; }
+    .filtros .form-check { display: inline-block; margin-right: 1.5rem; }
+  </style>
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="container mt-5">
+    <h2><i class="bi bi-people me-2"></i>Gestão de Utilizadores</h2>
+    <% if (locals.message) { %>
+      <div class="alert alert-success"><%= message %></div>
+    <% } %>
+    <% if (locals.error) { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addModal">
+      <i class="bi bi-plus-circle me-2"></i>Adicionar Utilizador
+    </button>
+
+    <div class="filtros">
+      <strong>Filtrar por perfil:</strong>
+      <div class="form-check"><input class="form-check-input" type="checkbox" value="admin" id="filtroAdmin" checked onchange="filtrarTabela()"><label for="filtroAdmin">Admin</label></div>
+      <div class="form-check"><input class="form-check-input" type="checkbox" value="gestor" id="filtroGestor" checked onchange="filtrarTabela()"><label for="filtroGestor">Gestor</label></div>
+      <div class="form-check"><input class="form-check-input" type="checkbox" value="funcionario" id="filtroFuncionario" checked onchange="filtrarTabela()"><label for="filtroFuncionario">Funcionário</label></div>
+      <div class="form-check"><input class="form-check-input" type="checkbox" value="aluno" id="filtroAluno" checked onchange="filtrarTabela()"><label for="filtroAluno">Aluno</label></div>
+    </div>
+
+    <table class="table table-hover" id="tabelaUtilizadores">
+      <thead class="table-dark">
+        <tr><th>ID</th><th>Nome</th><th>Email</th><th>Perfil</th><th>Data Registo</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        <% users.forEach(u => { %>
+          <tr>
+            <td><%= u._id %></td>
+            <td><%= u.nome %></td>
+            <td><%= u.email %></td>
+            <td><span class="badge bg-<%= u.role === 'admin' ? 'dark' : (u.role === 'gestor' ? 'warning' : (u.role === 'funcionario' ? 'info' : 'primary')) %>"><%= u.role %></span></td>
+            <td><%= new Date(u.data_registo).toLocaleDateString('pt-PT') %></td>
+            <td>
+              <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<%= u._id %>"><i class="bi bi-pencil"></i> Editar</button>
+              <% if (u._id != user.userId) { %>
+                <a href="/admin/users/delete/<%= u._id %>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')"><i class="bi bi-trash"></i> Eliminar</a>
+              <% } %>
+            </td>
+          </tr>
+
+          <!-- Modal Editar -->
+          <div class="modal fade" id="editModal<%= u._id %>" tabindex="-1">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form method="post" action="/admin/users/edit">
+                  <div class="modal-header"><h5>Editar Utilizador</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                  <div class="modal-body">
+                    <input type="hidden" name="id" value="<%= u._id %>">
+                    <div class="mb-3"><label>Nome</label><input type="text" class="form-control" name="nome" value="<%= u.nome %>" required></div>
+                    <div class="mb-3"><label>Email</label><input type="email" class="form-control" name="email" value="<%= u.email %>" required></div>
+                    <div class="mb-3"><label>Nova Palavra-passe (deixe em branco para manter)</label><input type="password" class="form-control" name="password" placeholder="Mínimo 6 caracteres"></div>
+                    <div class="mb-3"><label>Perfil</label>
+                      <select class="form-select" name="role" required>
+                        <option value="aluno" <%= u.role === 'aluno' ? 'selected' : '' %>>Aluno</option>
+                        <option value="funcionario" <%= u.role === 'funcionario' ? 'selected' : '' %>>Funcionário</option>
+                        <option value="gestor" <%= u.role === 'gestor' ? 'selected' : '' %>>Gestor</option>
+                        <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Administrador</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="modal-footer"><button type="submit" class="btn btn-primary">Guardar</button></div>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Adicionar -->
+  <div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" action="/admin/users/add">
+          <div class="modal-header"><h5>Adicionar Utilizador</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="mb-3"><label>Nome</label><input type="text" class="form-control" name="nome" required></div>
+            <div class="mb-3"><label>Email</label><input type="email" class="form-control" name="email" required></div>
+            <div class="mb-3"><label>Palavra-passe</label><input type="password" class="form-control" name="password" required></div>
+            <div class="mb-3"><label>Perfil</label>
+              <select class="form-select" name="role" required>
+                <option value="aluno">Aluno</option><option value="funcionario">Funcionário</option>
+                <option value="gestor">Gestor</option><option value="admin">Administrador</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer"><button type="submit" class="btn btn-success">Adicionar</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function filtrarTabela() {
+      const mostrarAdmin = document.getElementById('filtroAdmin').checked;
+      const mostrarGestor = document.getElementById('filtroGestor').checked;
+      const mostrarFunc = document.getElementById('filtroFuncionario').checked;
+      const mostrarAluno = document.getElementById('filtroAluno').checked;
+      const linhas = document.querySelectorAll('#tabelaUtilizadores tbody tr');
+      linhas.forEach(linha => {
+        const badge = linha.querySelector('td:nth-child(4) span.badge');
+        if (!badge) return;
+        const perfil = badge.textContent.trim().toLowerCase();
+        let mostrar = (perfil === 'admin' && mostrarAdmin) || (perfil === 'gestor' && mostrarGestor) ||
+                      (perfil === 'funcionario' && mostrarFunc) || (perfil === 'aluno' && mostrarAluno);
+        linha.style.display = mostrar ? '' : 'none';
+      });
+    }
+    window.addEventListener('load', filtrarTabela);
+  </script>
+</body>
+</html>

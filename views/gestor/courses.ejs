@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerir Cursos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>body{background:#f8f9fa;}</style>
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <% const availableDisciplinas = typeof disciplinas !== 'undefined' ? disciplinas : []; %>
+  <div class="container mt-5">
+    <h2 class="mb-4"><i class="bi bi-book me-2"></i>Gestão de Cursos</h2>
+    <% if (message) { const isError = message.toLowerCase().startsWith('erro'); %>
+      <div class="alert <%= isError ? 'alert-danger' : 'alert-success' %>"><%= message %></div>
+    <% } %>
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white"><h5 class="mb-0">Adicionar Novo Curso</h5></div>
+      <div class="card-body">
+        <form action="/gestor/cursos/add" method="post">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="nome_cursos_add" class="form-label">Nome do Curso</label>
+                <input type="text" id="nome_cursos_add" class="form-control" name="nome_cursos" placeholder="Ex: Psicologia, Contabilidade, etc." required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="num_uc" class="form-label">Nº de UC</label>
+                <input type="number" id="num_uc" class="form-control" min="1" max="20" placeholder="Ex: 3" value="1">
+                <small class="text-muted">Digite quantas UC quer adicionar</small>
+              </div>
+            </div>
+          </div>
+
+          <div id="uc_container"></div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-plus-circle"></i> Adicionar Curso</button>
+          </div>
+        </form>
+      </div>
+
+      <script>
+        const numUcInput = document.getElementById('num_uc');
+        const container = document.getElementById('uc_container');
+
+        function gerarCaixasUC() {
+          const num = parseInt(numUcInput.value) || 0;
+          container.innerHTML = '';
+
+          if (num <= 0) return;
+
+          const row = document.createElement('div');
+          row.className = 'row';
+
+          for (let i = 1; i <= num; i++) {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 mb-3';
+            col.innerHTML = `
+              <label class="form-label">UC nº ${i}</label>
+              <input type="text" class="form-control" name="disciplinas[]" placeholder="Ex: Programação" required>
+            `;
+            row.appendChild(col);
+          }
+
+          container.appendChild(row);
+        }
+
+        // Gerar caixas quando o número muda
+        numUcInput.addEventListener('input', gerarCaixasUC);
+        numUcInput.addEventListener('change', gerarCaixasUC);
+
+        // Gerar inicial com 1 caixa
+        gerarCaixasUC();
+      </script>
+    </div>
+    <div class="card">
+      <div class="card-header bg-secondary text-white"><h5 class="mb-0">Lista de Cursos</h5></div>
+      <div class="card-body table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>ID</th><th>Nome</th><th>Unidades</th><th>Ações</th></tr></thead>
+          <tbody>
+            <% cursos.forEach(curso => { %>
+              <tr>
+                <td><%= curso._id %></td>
+                <td><%= curso.nome_cursos %></td>
+                <td><%= curso.disciplinas ? curso.disciplinas.length : 0 %></td>
+                <td class="text-nowrap">
+                  <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<%= curso._id %>">Editar</button>
+                  <a href="/gestor/cursos/delete/<%= curso._id %>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')">Eliminar</a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% cursos.forEach(curso => { %>
+          <div class="modal fade" id="editModal<%= curso._id %>" tabindex="-1">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form action="/gestor/cursos/edit" method="post">
+                  <div class="modal-header"><h5 class="modal-title">Editar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                  <div class="modal-body">
+                    <input type="hidden" name="id_cursos" value="<%= curso._id %>">
+                    <div class="mb-3"><label class="form-label" for="nome_cursos_<%= curso._id %>">Nome do Curso</label><input id="nome_cursos_<%= curso._id %>" class="form-control" name="nome_cursos" value="<%= curso.nome_cursos %>" required></div>
+                    <div class="mb-3">
+                      <label class="form-label">Unidades Curriculares (<%= curso.disciplinas ? curso.disciplinas.length : 0 %>)</label>
+                      <div class="row" id="uc_edit_<%= curso._id %>">
+                        <% (curso.disciplinas || []).forEach((d, idx) => { %>
+                          <div class="col-md-12 mb-2">
+                            <label class="form-label small">UC nº <%= idx + 1 %></label>
+                            <div class="input-group">
+                              <input type="text" class="form-control" name="disciplinas[]" value="<%= d.nome_disciplina || d %>" required>
+                              <button type="button" class="btn btn-outline-danger" onclick="removerUC(this)" title="Remover UC">
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        <% }) %>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="adicionarUC('<%= curso._id %>')">+ Adicionar UC</button>
+                    </div>
+                  </div>
+                  <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+  <script>
+    function adicionarUC(cursoId) {
+      const container = document.getElementById(`uc_edit_${cursoId}`);
+      const numUC = container.querySelectorAll('input[name="disciplinas[]"]').length;
+      
+      const col = document.createElement('div');
+      col.className = 'col-md-12 mb-2';
+      col.innerHTML = `
+        <label class="form-label small">UC nº ${numUC + 1}</label>
+        <div class="input-group">
+          <input type="text" class="form-control" name="disciplinas[]" placeholder="Nome da UC" required>
+          <button type="button" class="btn btn-outline-danger" onclick="removerUC(this)" title="Remover UC">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      `;
+      container.appendChild(col);
+    }
+
+    function removerUC(btn) {
+      btn.closest('.col-md-12').remove();
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

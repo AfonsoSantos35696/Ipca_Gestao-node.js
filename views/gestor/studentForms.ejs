@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validação de Fichas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>body{background:#f8f9fa;}</style>
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="container mt-5">
+    <h2 class="mb-4"><i class="bi bi-files me-2"></i>Validação de Fichas de Aluno</h2>
+    <% if (message) { %><div class="alert alert-success"><%= message %></div><% } %>
+    <% if (fichas.length === 0) { %>
+      <div class="alert alert-secondary">Nenhuma ficha encontrada.</div>
+    <% } %>
+    <% fichas.forEach(f => { %>
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center bg-light">
+          <div>
+            <i class="bi bi-person-circle me-2"></i><strong><%= f.id_aluno?.nome || 'Aluno' %></strong> (ID: <%= f.id_aluno?._id || f.id_aluno %>)
+          </div>
+          <span class="badge bg-<%= f.estado === 'aprovada' ? 'success' : (f.estado === 'rejeitada' ? 'danger' : 'warning') %>"><%= f.estado %></span>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <% if (f.fotografia) { %>
+                <img src="<%= f.fotografia %>" class="img-fluid rounded" alt="Foto">
+              <% } else { %>
+                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height:200px;">Sem Foto</div>
+              <% } %>
+            </div>
+            <div class="col-md-9">
+              <p><strong>Nome Completo:</strong> <%= f.nome_completo %></p>
+              <p><strong>Curso Pretendido:</strong> <%= f.id_curso?.nome_cursos || 'N/A' %></p>
+              <p><strong>Data de Submissão:</strong> <%= f.data_submissao ? new Date(f.data_submissao).toLocaleString('pt-PT') : '-' %></p>
+              <% if (f.estado === 'submetida') { %>
+                <form action="/gestor/fichas_alunos/validate" method="post">
+                  <input type="hidden" name="id_ficha" value="<%= f._id %>">
+                  <div class="mb-3">
+                    <label class="form-label" for="observacoes_<%= f._id %>">Observações</label>
+                    <textarea class="form-control" id="observacoes_<%= f._id %>" name="observacoes" rows="3"></textarea>
+                  </div>
+                  <button type="submit" name="acao" value="aprovada" class="btn btn-success me-2">Aprovar</button>
+                  <button type="submit" name="acao" value="rejeitada" class="btn btn-danger">Rejeitar</button>
+                </form>
+              <% } else { %>
+                <p><strong>Observações do Gestor:</strong> <%= f.observacoes_gestor || '-' %></p>
+                <p><strong>Validado em:</strong> <%= f.data_validacao ? new Date(f.data_validacao).toLocaleString('pt-PT') : '-' %></p>
+                <p><strong>Gestor ID:</strong> <%= f.id_gestor || '-' %></p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

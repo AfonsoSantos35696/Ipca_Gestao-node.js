@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Matrícula</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card-matricula { border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    <div class="container mt-5">
+        <div class="card card-matricula">
+            <div class="card-header bg-warning text-white">
+                <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Pedido de Matrícula</h4>
+            </div>
+            <div class="card-body">
+                <% if (message) { %>
+                    <div class="alert alert-success"><%= message %></div>
+                <% } %>
+                <% if (error) { %>
+                    <div class="alert alert-danger"><%= error %></div>
+                <% } %>
+
+                <% if (pedido) { %>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>Já existe um pedido de matrícula. Estado atual: <strong><%= pedido.estado %></strong>
+                    </div>
+                    <a href="/aluno/consultar" class="btn btn-primary"><i class="bi bi-search me-1"></i>Consultar Estado</a>
+                <% } else { %>
+                    <form action="/aluno/matricula" method="post">
+                        <div class="mb-3">
+                            <label for="id_curso" class="form-label">Selecione o Curso *</label>
+                            <select class="form-select" id="id_curso" name="id_curso" required>
+                                <option value="">Escolha...</option>
+                                <% cursos.forEach(curso => { %>
+                                    <option value="<%= curso._id %>" data-disciplinas="<%= encodeURIComponent(JSON.stringify(curso.disciplinasNomes || [])) %>"><%= curso.nome_cursos %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Unidades Curriculares deste curso</label>
+                            <div id="disciplinas-preview" class="border rounded bg-light p-3 text-muted">
+                                Selecione um curso para ver as UCs.
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle me-1"></i>Efetuar Pedido</button>
+                        <a href="/aluno/dashboard" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i>Cancelar</a>
+                    </form>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            const selectCurso = document.getElementById('id_curso');
+            const preview = document.getElementById('disciplinas-preview');
+
+            if (!selectCurso || !preview) return;
+
+            const renderDisciplinas = () => {
+                const selectedOption = selectCurso.selectedOptions[0];
+                if (!selectedOption || !selectedOption.value) {
+                    preview.classList.add('text-muted');
+                    preview.innerHTML = 'Selecione um curso para ver as UCs.';
+                    return;
+                }
+
+                let disciplinas = [];
+                try {
+                    disciplinas = JSON.parse(decodeURIComponent(selectedOption.dataset.disciplinas || '%5B%5D'));
+                } catch (error) {
+                    disciplinas = [];
+                }
+
+                if (disciplinas.length === 0) {
+                    preview.classList.add('text-muted');
+                    preview.innerHTML = 'Este curso não tem UCs associadas.';
+                    return;
+                }
+
+                preview.classList.remove('text-muted');
+                preview.innerHTML = '<ul class="mb-0 ps-3">' + disciplinas.map(nome => '<li>' + nome + '</li>').join('') + '</ul>';
+            };
+
+            selectCurso.addEventListener('change', renderDisciplinas);
+            renderDisciplinas();
+        })();
+    </script>
+</body>
+</html>

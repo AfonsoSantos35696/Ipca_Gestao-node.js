@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ver Pauta</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>body{background:#f8f9fa;}</style>
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="container mt-5">
+    <div class="card">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="bi bi-eye me-2"></i>Pauta: <%= pauta.id_disciplina?.nome_disciplina || 'Disciplina' %></h5>
+      </div>
+      <div class="card-body">
+        <p><strong>Ano Letivo:</strong> <%= pauta.ano_letivo %> | <strong>Época:</strong> <%= pauta.epoca %></p>
+        <p><strong>Criada em:</strong> <%= pauta.data_criacao ? new Date(pauta.data_criacao).toLocaleString('pt-PT') : '-' %> pelo funcionário ID <%= pauta.id_funcionario_criador %></p>
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Aluno</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% pauta.notas.forEach(n => { %>
+                <tr>
+                  <td><%= n.aluno?.nome || 'Aluno' %></td>
+                  <td><%= n.nota != null ? n.nota : '-' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <a href="/funcionario/pautas" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Voltar</a>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
